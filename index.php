@@ -141,6 +141,45 @@
     <p>Name: <?= $name ?></p>
     <p>Status: <?= $status ?></p>
 
+    <h2>PDO</h2>
+    <h3>SQL injection</h3>
+    <?php
+        $id = '1';
+        // $id = '1; DELETE FROM tbl_lehrbetrieb WHERE id_lehrbetrieb = 4';
 
+        $pdo = new PDO('mysql:host=localhost;dbname=kursverwaltung', $username = 'root', $password = '');
+
+        $statement = $pdo->query("SELECT * FROM tbl_lehrbetrieb WHERE id_lehrbetrieb =" . $id);
+
+        $results = $statement->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($results as $result) {
+    ?>
+        <p><?= $result['firma'] ?></p>
+    <?php
+        }
+    ?>
+
+    <h3>Prepared statements</h3>
+    <?php
+        // Prepare the SQL query with a placeholder for the ID
+        $statement = $pdo->prepare("SELECT * FROM tbl_lehrbetrieb WHERE id_lehrbetrieb = :id");
+
+        // Bind the actual value of $id to the placeholder
+        $statement->bindParam(':id', $id, PDO::PARAM_INT);
+
+        // Execute the query
+        $statement->execute();
+
+        // Fetch all the results
+        $results = $statement->fetchAll(PDO::FETCH_ASSOC);
+
+        // Iterate over the results and display them
+        foreach ($results as $result) {
+    ?>
+            <p><?= htmlspecialchars($result['firma']) ?></p>
+    <?php
+        }
+    ?>
 </body>
 </html>
