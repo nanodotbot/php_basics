@@ -145,25 +145,25 @@
     <h3>SQL injection</h3>
     <?php
         $id = '1';
-        // $id = '1; DELETE FROM tbl_lehrbetrieb WHERE id_lehrbetrieb = 4';
+        // $id = '1; DELETE FROM tbl_countries WHERE id_countries = 2';
 
         $pdo = new PDO('mysql:host=localhost;dbname=kursverwaltung', $username = 'root', $password = '');
 
-        $statement = $pdo->query("SELECT * FROM tbl_lehrbetrieb WHERE id_lehrbetrieb =" . $id);
+        $statement = $pdo->query("SELECT * FROM tbl_countries WHERE id_countries =" . $id);
 
         $results = $statement->fetchAll(PDO::FETCH_ASSOC);
 
         foreach ($results as $result) {
     ?>
-        <p><?= $result['firma'] ?></p>
+        <p><?= $result['country'] ?></p>
     <?php
         }
     ?>
 
-    <h3>Prepared statements</h3>
+    <h3>Prepared statements and cross-site scripting attack</h3>
     <?php
         // Prepare the SQL query with a placeholder for the ID
-        $statement = $pdo->prepare("SELECT * FROM tbl_lehrbetrieb WHERE id_lehrbetrieb = :id");
+        $statement = $pdo->prepare("SELECT * FROM tbl_countries WHERE id_countries = :id");
 
         // Bind the actual value of $id to the placeholder
         $statement->bindParam(':id', $id, PDO::PARAM_INT);
@@ -174,12 +174,24 @@
         // Fetch all the results
         $results = $statement->fetchAll(PDO::FETCH_ASSOC);
 
+        $results = [
+            ['country' => '<script>alert("Hacked!");</script>']
+        ];
+
         // Iterate over the results and display them
         foreach ($results as $result) {
     ?>
-            <p><?= htmlspecialchars($result['firma']) ?></p>
+            <p><?= htmlspecialchars($result['country']) ?></p>
     <?php
         }
     ?>
+
+    <h2>When to Use htmlspecialchars()</h2>
+    <p>When Outputting Data to the Browser: Always use htmlspecialchars() when you're outputting user data (or data that could potentially contain user input) to the browser. This ensures any special characters are safely encoded so they can't be interpreted as HTML or JavaScript. This is essential to prevent XSS attacks.</p>
+
+    <p>When Inserting Data Into the Database: In general, you do not need to use htmlspecialchars() when writing data to the database. The database is not concerned with how the data will be rendered in the browser, so it's best to store the raw data (e.g., user_input or country_name) without encoding it for HTML output.</p>
+
+    <p>However, data sanitization and validation should always be done before inserting into the database. For example, you should ensure the data is safe, well-formed, and matches the expected format (e.g., text, numbers, dates) using proper validation techniques (like using prepared statements with bound parameters, which you're already doing!).</p>
+
 </body>
 </html>
